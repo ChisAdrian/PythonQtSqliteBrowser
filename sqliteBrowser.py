@@ -2,7 +2,7 @@ import pathlib
 import sys
 
 from PyQt5 import QtWidgets  # QtCore, QtGui
-from PyQt5 import QtSql
+from PyQt5 import QtSql 
 from PyQt5.QtGui import QIcon, QStandardItemModel
 from PyQt5.QtWidgets import QAction, QFileDialog, QPushButton
 
@@ -24,6 +24,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fileMenu = mainMenu.addMenu('File')
         self.databaseMenu = mainMenu.addMenu('DataBase')
 
+
         exitButton = QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
         exitButton.setStatusTip('Exit application')
@@ -38,17 +39,18 @@ class MainWindow(QtWidgets.QMainWindow):
         closeDb.setStatusTip('Close current DB')
         closeDb.setShortcut('Ctrl+D')
         closeDb.triggered.connect(self.closeThis)
-
+        '''
         execQuery = QAction('Execute Query', self)
         execQuery.setStatusTip('Execute Query from Text')
         execQuery.setShortcut('Ctrl+E')
         execQuery.triggered.connect(self.doQuery)
+        '''
 
         fileMenu.addAction(openDb)
         fileMenu.addAction(closeDb)
         fileMenu.addAction(exitButton)
-
-        self.databaseMenu.addAction(execQuery)
+        
+        #self.databaseMenu.addAction(execQuery)
         self.mdl = QStandardItemModel(self)
         self.pathDb = ''
        
@@ -68,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.splitter.setSizes([50, 200])
         self.ui.splitter_2.setSizes([50, 200])
         self.createHistMenus()
-        
+       
 
     def onIni(self):
         lOdir = QStandardItemModel(self)
@@ -76,6 +78,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lastOpenDir = lOdir.data(lOdir.index(0, 0))
 
     def createHistMenus(self):
+        self.databaseMenu.clear()
         menuMod = QStandardItemModel(self)
         menuMod = QSQLF.doQueryRetModel('settings.sqlite', 'SELECT * FROM LAST7PATH', self.db)
         
@@ -140,7 +143,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sender = self.sender()
         print(sender.iconText())
         self.pathDb = sender.iconText()
-        print("PATH2 "+ self.pathDb)
+        #print("PATH2 "+ self.pathDb)
         self.treeModel = QSQLF.doQueryRetModel(self.pathDb, 'SELECT type,tbl_name FROM sqlite_master;', self.db)
         self.ui.treeView_DB.setModel(self.treeModel)
         lastDir = pathlib.Path(self.pathDb).parent
@@ -151,9 +154,10 @@ class MainWindow(QtWidgets.QMainWindow):
        
 
     def doOpendb(self):
+        
         self.onIni()
         fname = QFileDialog.getOpenFileName(self, 'Open file', self.lastOpenDir.replace('\\','/'), "Db files (*.sqlite *.db)")
-        print(fname)               
+        #print(fname)               
         if str(fname[0]) != '':
             self.pathDb = str(fname[0])
             stat = self.statusBar()
@@ -165,6 +169,8 @@ class MainWindow(QtWidgets.QMainWindow):
         QSQLF.doQueryRetModel('settings.sqlite', 'INSERT INTO LAST7PATH VALUES("' + self.pathDb + '");',self.db)
         QSQLF.doQueryRetModel('settings.sqlite', 'DELETE FROM LAST7PATH   WHERE rowid NOT IN (SELECT rowid FROM LAST7PATH GROUP by L_PATH);', self.db)
         QSQLF.doQueryRetModel('settings.sqlite', 'DELETE FROM LAST7PATH WHERE rowid = (SELECT rowid FROM KEEP7);', self.db)
+        
+        self.createHistMenus() # need to clean
 
     def resizeEvent(self, event):
         sxz = event.size()
