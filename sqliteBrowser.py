@@ -45,6 +45,7 @@ class MainWindow(QtWidgets.QMainWindow):
         execQuery.setShortcut('Ctrl+E')
         execQuery.triggered.connect(self.doQuery)
         '''
+        # Use only for Last open DB
 
         fileMenu.addAction(openDb)
         fileMenu.addAction(closeDb)
