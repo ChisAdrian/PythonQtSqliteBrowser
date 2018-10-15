@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QAction, QFileDialog, QInputDialog, QLineEdit,
 import QSqlDatabaseV0 as QSQLF
 import resources  # pylint: disable=unused-import
 import Ui_main
+import pyperclip
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -31,6 +32,9 @@ class MainWindow(QtWidgets.QMainWindow):
         exportACt.triggered.connect(self.exportCSV)
         exportMenu.addAction(exportACt)
 
+        exportToCLip = QAction('CopyAll',self)
+        exportToCLip.triggered.connect(self.exportClip)
+        exportMenu.addAction(exportToCLip)
 
         exitButton = QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
@@ -74,6 +78,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.splitter.setSizes([50, 200])
         self.ui.splitter_2.setSizes([50, 200])
         self.createHistMenus()
+        self.exportCSV_ = True
+
+    def exportClip(self):
+        self.exportCSV_ = False
+        self.exportCSV()
+        self.exportCSV_ = True
+
+
 
     def exportCSV(self):
         exportModel = QStandardItemModel(self)
@@ -83,7 +95,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         nrOfRows = exportModel.rowCount()
         nrOfCols = exportModel.columnCount()
-
         exportCSVStr = StringIO()
 
         for ch in range(nrOfCols):
@@ -100,6 +111,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 exportCSVStr.write('\t')
 
             exportCSVStr.write('\n')
+
+        if not self.exportCSV_:
+            pyperclip.copy(exportCSVStr.getvalue())
+            return
 
         text, okPressed = QInputDialog.getText(self, "Get text", "File Name:", QLineEdit.Normal, "")
         if okPressed and text != '':
