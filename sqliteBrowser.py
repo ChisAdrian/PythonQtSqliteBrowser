@@ -4,7 +4,6 @@ from io import StringIO
 
 import pyperclip
 from PyQt5 import QtCore, QtSql, QtWidgets
-#from PyQt5.QtCore import QModelIndexList
 from PyQt5.QtGui import QIcon, QStandardItemModel
 from PyQt5.QtWidgets import (QAction, QFileDialog, QInputDialog, QLineEdit,
                              QPushButton)
@@ -29,18 +28,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.databaseMenu = mainMenu.addMenu('DataBase')
 
         exportMenu = mainMenu.addMenu('Export')
-        exportACt = QAction('toCSV', self)
+        exportACt = QAction('to_CSV', self)
+        exportACt.setShortcut('Ctrl+Shift+C')
         exportACt.triggered.connect(self.exportCSV)
         exportMenu.addAction(exportACt)
 
+        editMenu = mainMenu.addMenu('Edit')
+
         exportToCLip = QAction('CopyAll', self)
         exportToCLip.triggered.connect(self.exportClip)
-        exportMenu.addAction(exportToCLip)
+        exportToCLip.setShortcut('Ctrl+Shift+A')
+        editMenu.addAction(exportToCLip)
+
+        execQuery = QAction('_exec_Query', self)
+        execQuery.setShortcut('Ctrl+E')
+        execQuery.triggered.connect(self.doQuery)
+        editMenu.addAction(execQuery)
 
         copySel = QAction('Copy', self)
         copySel.triggered.connect(self.copySelection)
         copySel.setShortcut('Ctrl+C')
-        exportMenu.addAction(copySel)
+        editMenu.addAction(copySel)
 
         exitButton = QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
@@ -60,11 +68,6 @@ class MainWindow(QtWidgets.QMainWindow):
         fileMenu.addAction(openDb)
         fileMenu.addAction(closeDb)
         fileMenu.addAction(exitButton)
-
-
-        self.execQuery = QAction('_exec_', self)
-        self.execQuery.setShortcut('Ctrl+E')
-        self.execQuery.triggered.connect(self.doQuery)
 
         self.mdl = QStandardItemModel(self)
         self.pathDb = ''
@@ -96,7 +99,7 @@ class MainWindow(QtWidgets.QMainWindow):
         clipboardString = StringIO()
         selectedIndexes = self.ui.tableView.selectedIndexes()
         if selectedIndexes:
-            countList = len(selectedIndexes)         
+            countList = len(selectedIndexes)
             for r in range(countList):
                 current = selectedIndexes[r]
                 displayText = current.data(QtCore.Qt.DisplayRole)
@@ -105,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     if next_.row() != current.row():
                         displayText += ("\n")
                     else:
-                        displayText += ("\t")
+                        displayText += ("\t") # or choose other separator
                 clipboardString.write(displayText)
             pyperclip.copy(clipboardString.getvalue())
 
@@ -155,8 +158,6 @@ class MainWindow(QtWidgets.QMainWindow):
         menuMod = QStandardItemModel(self)
         selLastP = 'SELECT * FROM LAST7PATH'
         menuMod = QSQLF.doQueryRetModel('settings.sqlite', selLastP, self.db)
-        self.databaseMenu.addAction(self.execQuery)
-
         for i in range(menuMod.rowCount()):
             self.strMenu = menuMod.data(menuMod.index(i, 0))
             QAct = QAction(self.strMenu, self)
