@@ -278,6 +278,6 @@ if __name__ == "__main__":
     WINDOW.show()
     sys.exit(AppQt.exec_())
     # pyrcc5  res.qrc  -o resources.py
-    # pyinstaller  --icon=main.ico --onefile --noconsole --path\
+    # pyinstaller  --icon=icons/main.ico --onefile --noconsole --path\
     #  "C:\Portables\Python37-32\Lib\site-packages\PyQt5\Qt\bin" \
     #  "C:/Portables/Python37-32/Projects/PythonQtSqliteBrowser/sqliteBrowser.py"
