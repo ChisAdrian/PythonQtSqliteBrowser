@@ -19,7 +19,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_main.Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowIcon(QIcon(":/main.ico"))
+        self.setWindowIcon(QIcon(":icons/main.ico"))
         self.db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
         self.setingsDbexist('settings.sqlite')
         self.onIni()
@@ -30,6 +30,7 @@ class MainWindow(QtWidgets.QMainWindow):
         exportMenu = mainMenu.addMenu('Export')
         exportACt = QAction('to_CSV', self)
         exportACt.setShortcut('Ctrl+Shift+C')
+       
         exportACt.triggered.connect(self.exportCSV)
         exportMenu.addAction(exportACt)
 
@@ -42,9 +43,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         execQuery = QAction('_exec_Query', self)
         execQuery.setShortcut('Ctrl+E')
+        execQuery.setIcon((QIcon(":icons/st.ico")))
         execQuery.triggered.connect(self.doQuery)
-        editMenu.addAction(execQuery)
-
         copySel = QAction('Copy', self)
         copySel.triggered.connect(self.copySelection)
         copySel.setShortcut('Ctrl+C')
@@ -68,7 +68,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fileMenu.addAction(openDb)
         fileMenu.addAction(closeDb)
         fileMenu.addAction(exitButton)
-
+        editMenu.addAction(execQuery)
         self.mdl = QStandardItemModel(self)
         self.pathDb = ''
         self.queryTXT = ''
@@ -83,12 +83,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.queryButton.clicked.connect(self.doQuery)
         self.queryButton.show()
         self.lastDbModel = QStandardItemModel(self)
-        self.showMaximized()
         self.ui.splitter_2.splitterMoved.connect(self.resizeEventV2)
         self.ui.splitter.setSizes([50, 200])
         self.ui.splitter_2.setSizes([50, 200])
         self.createHistMenus()
         self.exportCSV_ = True
+        self.resizeEventV2()
+        #self.showMaximized()
 
     def exportClip(self):
         self.exportCSV_ = False
@@ -161,6 +162,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(menuMod.rowCount()):
             self.strMenu = menuMod.data(menuMod.index(i, 0))
             QAct = QAction(self.strMenu, self)
+            QAct.setIcon((QIcon(":icons/"+str(i+1)+".ico")))
             QAct.triggered.connect(self.doOpendbPATH)
             self.databaseMenu.addAction(QAct)
 
