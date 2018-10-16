@@ -1,8 +1,11 @@
+import csv
 import pathlib
 import sys
 from io import StringIO
 
-from PyQt5 import QtSql, QtWidgets
+import pyperclip
+from PyQt5 import QtCore, QtSql, QtWidgets
+#from PyQt5.QtCore import QModelIndexList
 from PyQt5.QtGui import QIcon, QStandardItemModel
 from PyQt5.QtWidgets import (QAction, QFileDialog, QInputDialog, QLineEdit,
                              QPushButton)
@@ -10,7 +13,6 @@ from PyQt5.QtWidgets import (QAction, QFileDialog, QInputDialog, QLineEdit,
 import QSqlDatabaseV0 as QSQLF
 import resources  # pylint: disable=unused-import
 import Ui_main
-import pyperclip
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -32,9 +34,14 @@ class MainWindow(QtWidgets.QMainWindow):
         exportACt.triggered.connect(self.exportCSV)
         exportMenu.addAction(exportACt)
 
-        exportToCLip = QAction('CopyAll',self)
+        exportToCLip = QAction('CopyAll', self)
         exportToCLip.triggered.connect(self.exportClip)
         exportMenu.addAction(exportToCLip)
+
+        copySel = QAction('Copy', self)
+        copySel.triggered.connect(self.copySelection)
+        copySel.setShortcut('Ctrl+C')
+        exportMenu.addAction(copySel)
 
         exitButton = QAction('Exit', self)
         exitButton.setShortcut('Ctrl+Q')
@@ -66,7 +73,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeModel = QStandardItemModel(self)
         self.treeModel_grid = QStandardItemModel(self)
         self.ui.treeView_DB.clicked.connect(self.treeView_DBclicked)
-        self.ui.treeView_DB.doubleClicked.connect(self.treeView_DBclickedTwice)
+        self.ui.treeView_DB.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.treeView_DB.customContextMenuRequested.connect(self.treeView_DB_RightCick)
         noTrigger = QtWidgets.QAbstractItemView.NoEditTriggers
         self.ui.treeView_DB.setEditTriggers(noTrigger)
         self.queryButton = QPushButton('_exec', self.ui.plainTextEdit)
@@ -85,7 +93,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exportCSV()
         self.exportCSV_ = True
 
-
+    def copySelection(self):
+        clipboardString = StringIO()
+        selectedIndexes = self.ui.tableView.selectedIndexes()
+        if selectedIndexes:
+            countList = len(selectedIndexes)         
+            for r in range(countList):
+                current = selectedIndexes[r]
+                displayText = current.data(QtCore.Qt.DisplayRole)
+                if r+1 < countList:
+                    next_ = selectedIndexes[r+1]
+                    if next_.row() != current.row():
+                        displayText += ("\n")
+                    else:
+                        displayText += ("\t")
+                clipboardString.write(displayText)
+            pyperclip.copy(clipboardString.getvalue())
 
     def exportCSV(self):
         exportModel = QStandardItemModel(self)
@@ -164,10 +187,11 @@ class MainWindow(QtWidgets.QMainWindow):
             QSQLF.doQueryRetModel('settings.sqlite', creaetView, self.db)
         return True
 
-    def treeView_DBclickedTwice(self):
+    def treeView_DB_RightCick(self):
         rowNum = self.ui.treeView_DB.selectionModel().currentIndex().row()
         tbl_name = str(self.treeModel.data(self.treeModel.index(rowNum, 1)))
         self.ui.plainTextEdit.setPlainText('SELECT * FROM ' + tbl_name)
+        self.ui.tabWidget.setCurrentIndex(1)
 
     def treeView_DBclicked(self):
         rowNum = self.ui.treeView_DB.selectionModel().currentIndex().row()
@@ -200,7 +224,7 @@ class MainWindow(QtWidgets.QMainWindow):
         QSQLF.doQueryRetModel('settings.sqlite',\
         'UPDATE LAST_DIR SET PATH_DIR="' + str(lastDir) + '";', self.db)
         QSQLF.doQueryRetModel('settings.sqlite', \
-        'INSERT INTO LAST7PATH VALUES("' + self.pathDb + '");', self.db)
+                              'INSERT INTO LAST7PATH VALUES("' + self.pathDb + '");', self.db)
         QSQLF.doQueryRetModel('settings.sqlite',\
         'DELETE FROM LAST7PATH   WHERE rowid NOT IN \
         (SELECT rowid FROM LAST7PATH GROUP by L_PATH);', self.db)
