@@ -1,4 +1,3 @@
-import csv
 import pathlib
 import sys
 from io import StringIO
